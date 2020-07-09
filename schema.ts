@@ -1,4 +1,3 @@
-import { Request, Response } from "https://deno.land/x/oak/mod.ts";
 import { applyGraphQL, gql, GQLError } from "https://deno.land/x/oak_graphql/mod.ts";
 
 // simulates retained data
@@ -23,9 +22,8 @@ input HelloInput {
 }
 
 type HelloType {
-  a: String
-  b: String
   ab: String
+  ba: String
 }
 
 input AddInput {
@@ -34,41 +32,40 @@ input AddInput {
 }
 
 type AddType {
-  a: Int
-  b: Int
-  ab: Int
+  apb: Int
+  amb: Int
 }
 `;
 
 // to show that we can manipulate req and res objects in the context
-const handleContext = (ctx: any, handlerName: string) => {
+const resolveContext = (ctx: any, resolverName: string) => {
   const agent: string = ctx.req.headers.get('User-Agent');
-  ctx.res.headers.set('handler', `${agent.toLowerCase().replace('/', '-')}-${handlerName}`);
+  ctx.res.headers.set('resolver', `${agent.toLowerCase().replace('/', '-')}-${resolverName}`);
 };
 
 const resolvers = {
   Query: {
     hello: (parent: any, { }: any, context: any, info: any) => {
-      handleContext(context, 'hello');
+      resolveContext(context, 'hello');
       return "world";
     },
     helloText: (parent: any, { txt }: any, context: any, info: any) => {
-      handleContext(context, 'hello-text');
+      resolveContext(context, 'hello-text');
       return `${txt} world`;
     },
     helloObject: (parent: any, { obj: { a, b } }: any, context: any, info: any) => {
-      handleContext(context, 'hello-object');
-      return { a, b, ab: `${a} ${b}` };
+      resolveContext(context, 'hello-object');
+      return { ab: `${a} ${b}`, ba: `${b} ${a}` };
     },
   },
   Mutation: {
     add: (parent: any, { }: any, context: any, info: any) => {
-      handleContext(context, 'add');
+      resolveContext(context, 'add');
       counter = counter + 1;
       return counter;
     },
     addNum: (parent: any, { num }: any, context: any, info: any) => {
-      handleContext(context, 'add-num');
+      resolveContext(context, 'add-num');
       if (num < 1)
         throw new GQLError({ type: "Invalid value for x" });
 
@@ -76,14 +73,14 @@ const resolvers = {
       return counter;
     },
     addObject: (parent: any, { obj: { a, b } }: any, context: any, info: any) => {
-      handleContext(context, 'add-object');
+      resolveContext(context, 'add-object');
       if (a < 1)
         throw new GQLError({ type: "Invalid value for a" });
 
       if (b < 1)
         throw new GQLError({ type: "Invalid value for b" });
 
-      return { a, b, ab: a + b };
+      return { apb: a + b, amb: a - b };
     },
   },
 };
