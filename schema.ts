@@ -67,7 +67,7 @@ const resolvers = {
     addNum: (parent: any, { num }: any, context: any, info: any) => {
       resolveContext(context, 'add-num');
       if (num < 1)
-        throw new GQLError({ type: "Invalid value for x" });
+        throw new GQLError({ type: "Invalid value for num" });
 
       counter = counter + num;
       return counter;
